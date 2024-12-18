@@ -14,10 +14,10 @@
 
 *TODO*
 
-
-### Pinouts
-
-*TODO*
+- Adafruit Metro ESP32-S3 - 16 MB Flash, 8 MB PSRAM (#5500)
+- Adafruit QT Py ESP32-S3 - 8 MB Flash, No PSRAM (#5426)
+- Adafruit QT Py ESP32-S3 - 4 MB Flash, 2MB PSRAM (#5700)
+- Waterproof 1-Wire DS18B20 Digital temperature sensor
 
 
 ### Tools and Consumables
@@ -25,9 +25,36 @@
 You will need soldering tools and solder.
 
 
-### Soldering the Headers
+### Pinouts
+
+**TODO**
+
+# Hardware:
+#
+# Pinouts:
+# | Metro S3 | SD slot | 1-wire |
+# | -------- | ------- | ------ |
+# | ...      | ...     | ...    |
+#
+# | Qt Py S3 | SD slot | 1-wire |
+# | -------- | ------- | ------ |
+# | ...      | ...     | ...    |
+
+
+
+### Soldering
 
 *TODO*
+
+
+## Related Documentation:
+
+- https://learn.adafruit.com/adafruit-metro-esp32-s3
+- https://learn.adafruit.com/adafruit-qt-py-esp32-s3
+- https://learn.adafruit.com/using-ds18b20-temperature-sensor-with-circuitpython
+- https://docs.circuitpython.org/projects/onewire/en/stable/
+- https://learn.adafruit.com/deep-sleep-with-circuitpython/overview
+- https://docs.circuitpython.org/en/stable/shared-bindings/alarm/
 
 
 ## Updating CircuitPython
