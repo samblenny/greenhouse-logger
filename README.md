@@ -1,23 +1,39 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- SPDX-FileCopyrightText: Copyright 2024 Sam Blenny -->
-# Greenhouse SD Logger
+# Greenhouse Logger
 
 **WORK IN PROGRESS (ALPHA)**
 
 
 ## Hardware
 
-*TODO*
-
 
 ### Parts
 
-*TODO*
+This project is designed for making several loggers using parts on hand or
+whatever is cheap and available. Each logger needs a dev board, temperature
+sensor, setup-mode jumper, battery pack, and enclosure.
 
+ESP32-S3 Dev Board:
 - Adafruit Metro ESP32-S3 - 16 MB Flash, 8 MB PSRAM (#5500)
 - Adafruit QT Py ESP32-S3 - 8 MB Flash, No PSRAM (#5426)
 - Adafruit QT Py ESP32-S3 - 4 MB Flash, 2MB PSRAM (#5700)
+
+Temperature Sensor and Setup-Mode Jumper:
 - Waterproof 1-Wire DS18B20 Digital temperature sensor
+- 4.7 kΩ thru-hole resistor
+- Hookup wire
+- Heat shrink tubing or electrical tape (prevent shorts)
+- Proto PCB (optional, for keeping soldered wiring neater)
+- Male header pins + 2 position removable jumper (or F-F DuPont wire)
+
+Battery Pack:
+- Qt PY option: 3xAA or 3xAAA battery holder + matching NiMH batteries
+- Metro/Feather Option: Adafruit Lithium Ion battery pack (400+ mAh)
+
+Enclosure:
+- Water resistant outdoor junction box with cable gland
+- Silica gel desiccant pack (2g should be enough)
 
 
 ### Tools and Consumables
