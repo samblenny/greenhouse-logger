@@ -27,19 +27,25 @@ You will need soldering tools and solder.
 
 ### Pinouts
 
-**TODO**
+**CAUTION:** For reliable temperature conversions with DS18B20 1-wire sensors,
+be sure to wire up the 3.3V pin (red wire). Parasitic power with the DS18B20
+sensors may be unreliable, particularly with the counterfeit sensors
+[which are very common](https://github.com/cpetrich/counterfeit_DS18B20).
 
-# Hardware:
-#
-# Pinouts:
-# | Metro S3 | SD slot | 1-wire |
-# | -------- | ------- | ------ |
-# | ...      | ...     | ...    |
-#
-# | Qt Py S3 | SD slot | 1-wire |
-# | -------- | ------- | ------ |
-# | ...      | ...     | ...    |
+| Metro S3 | DS18B20      | 4.7 kΩ |
+| -------- | ------------ | ------ |
+| GND      | Black/Blue   |        |
+| 3.3      | Red          | Lead 1 |
+| A1       | Yellow/White | Lead 2 |
 
+
+| Qt Py S3 | DS18B20      | 4.7 kΩ | 3xAA holder |
+| -------- | ------------ | ------ | ----------- |
+| GND      | Black/Blue   |        |             |
+| 3V       | Red          | Lead 1 |             |
+| A1       | Yellow/White | Lead 2 |             |
+| GND      |              |        | Black       |
+| BAT      |              |        | Red         |
 
 
 ### Soldering
@@ -53,8 +59,12 @@ You will need soldering tools and solder.
 - https://learn.adafruit.com/adafruit-qt-py-esp32-s3
 - https://learn.adafruit.com/using-ds18b20-temperature-sensor-with-circuitpython
 - https://docs.circuitpython.org/projects/onewire/en/stable/
+- https://docs.circuitpython.org/projects/ds18x20/en/stable/api.html
 - https://learn.adafruit.com/deep-sleep-with-circuitpython/overview
 - https://docs.circuitpython.org/en/stable/shared-bindings/alarm/
+- https://docs.circuitpython.org/en/stable/shared-bindings/struct/
+- https://docs.python.org/3/library/struct.html
+- https://docs.python.org/3/library/functions.html#property (decorators)
 
 
 ## Updating CircuitPython
