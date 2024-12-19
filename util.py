@@ -13,13 +13,31 @@
 # ...
 #
 from alarm import sleep_memory
+from board import board_id, I2C
 from rtc import RTC
 from struct import unpack
-from time import struct_time
+from time import struct_time, sleep
 
 from adafruit_datetime import datetime
+from adafruit_max1704x import MAX17048
 from datalogger import SleepMem, EPOCH, TIME_SHIFT
 
+
+def batt():
+    # Check battery status on supported boards
+    if board_id == 'adafruit_metro_esp32s3':
+        with I2C() as i2c:
+            max17 = MAX17048(i2c)
+            ver = max17.chip_version
+            chip_id = max17.chip_id
+            print("MAX17: ver=%02X, chip_id=%02X" % (ver, chip_id))
+            max17.wake()
+            sleep(0.5)
+            volts = max17.cell_voltage
+            percent = max17.cell_percent
+            print("BATTERY: %.2fV, %.1f%%" % (volts, percent))
+    else:
+        print("Battery check for this board is not implemented yet")
 
 def dump():
     # Print the data log in CSV format to serial console

@@ -96,6 +96,11 @@ Python Time Stuff:
 - https://docs.python.org/3/library/datetime.html#datetime.datetime.fromtimestamp
 - https://docs.circuitpython.org/projects/datetime/en/stable/api.html#adafruit_datetime.datetime.fromtimestamp
 
+MAX17048 Battery Fuel Gauge:
+- https://learn.adafruit.com/adafruit-max17048-lipoly-liion-fuel-gauge-and-battery-monitor/python-circuitpython
+- https://docs.circuitpython.org/projects/max1704x/en/stable/api.html
+- https://www.analog.com/media/en/technical-documentation/data-sheets/MAX17048-MAX17049.pdf
+
 
 ## Updating CircuitPython
 
