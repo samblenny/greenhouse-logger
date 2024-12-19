@@ -22,9 +22,9 @@ sync: bundle
 	rsync -rcvO 'build/${PROJECT_DIR}/CircuitPython 9.x/' /Volumes/CIRCUITPY
 	sync
 
-# Start serial terminal at fast baud rate with no flow control (-fn)
+# Serial terminal: 115200 baud, no flow control (-fn), 9999 line scrollback
 tty:
-	screen -fn /dev/tty.usbmodem* 115200
+	screen -h 9999 -fn /dev/tty.usbmodem* 115200
 
 clean:
 	rm -rf build
