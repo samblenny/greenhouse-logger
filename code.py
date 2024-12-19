@@ -11,33 +11,31 @@ import time
 def main():
     # This will run each time the board wakes from deep sleep.
 
-    # Blink the LED or neopixel
     dl = Datalogger()
-    dl.blink(5)
 
-    # If A3 is jumpered to 3.3V, this light sleep loop will activate,
+    # If A3 is jumpered to GND, this light sleep loop will activate,
     # preventing deep sleeping and stopping new measurements. Light sleep
     # allows re-connecting to USB to dump measurements after running on battery
     # power with deep sleeps.
     #
-    a3_3v = DigitalInOut(A3)
-    a3_3v.direction = Direction.INPUT
-    a3_3v.pull = Pull.DOWN
+    a3_gnd = DigitalInOut(A3)
+    a3_gnd.direction = Direction.INPUT
+    a3_gnd.pull = Pull.UP
     first = True
-    if a3_3v.value:
-        fahrenheit = dl.measure_temp_f()
-        print(fahrenheit, "°F")
-        while a3_3v.value:
+    if not a3_gnd.value:
+        F = dl.measure_temp_f()
+        print("1-wire: %d °F" % F)
+        while not a3_gnd.value:
             lightsleep(1)
             if first:
                 first = False
-                print("waiting while A3 at 3.3V...")
+                print("waiting while A3 at GND...")
         print("done")
 
     # Record a measurement
-    fahrenheit = dl.measure_temp_f()
-    print(fahrenheit, "°F")
-    dl.record(fahrenheit)
+    F = dl.measure_temp_f()
+    print("DS18B20: %d °F" % F)
+    dl.record(F)
 
     # Do an ESP32 deep sleep to save battery power
     deepsleep(8)
