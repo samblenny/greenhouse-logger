@@ -71,16 +71,30 @@ sensors may be unreliable, particularly with the counterfeit sensors
 
 ## Related Documentation:
 
+Dev Boards:
 - https://learn.adafruit.com/adafruit-metro-esp32-s3
 - https://learn.adafruit.com/adafruit-qt-py-esp32-s3
+
+1-wire Temperature Sensing:
 - https://learn.adafruit.com/using-ds18b20-temperature-sensor-with-circuitpython
 - https://docs.circuitpython.org/projects/onewire/en/stable/
 - https://docs.circuitpython.org/projects/ds18x20/en/stable/api.html
+
+ESP32-S3 Battery Power and Deep Sleep:
 - https://learn.adafruit.com/deep-sleep-with-circuitpython/overview
 - https://docs.circuitpython.org/en/stable/shared-bindings/alarm/
+
+Miscellaneous Python Tricks:
 - https://docs.circuitpython.org/en/stable/shared-bindings/struct/
-- https://docs.python.org/3/library/struct.html
+- https://docs.python.org/3/library/struct.html (pack, unpack)
 - https://docs.python.org/3/library/functions.html#property (decorators)
+
+Python Time Stuff:
+- https://docs.circuitpython.org/en/stable/shared-bindings/time/#time.struct_time
+- https://docs.circuitpython.org/en/stable/shared-bindings/time/#time.mktime
+- https://docs.python.org/3/library/time.html#time.mktime
+- https://docs.python.org/3/library/datetime.html#datetime.datetime.fromtimestamp
+- https://docs.circuitpython.org/projects/datetime/en/stable/api.html#adafruit_datetime.datetime.fromtimestamp
 
 
 ## Updating CircuitPython
