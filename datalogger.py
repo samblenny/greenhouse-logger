@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: Copyright 2024 Sam Blenny
 #
-from alarm import (
-    light_sleep_until_alarms, exit_and_deep_sleep_until_alarms, sleep_memory
-)
-from alarm.time import TimeAlarm
+from alarm import sleep_memory
 from board import A1, A3
 from digitalio import DigitalInOut
 from neopixel_write import neopixel_write
@@ -43,17 +40,6 @@ PUMPKIN_HOUR = const(1867228927)
 
 # How many bits of timestamp to discard (3 bits means 8 second resolution)
 TIME_SHIFT = const(3)
-
-
-def lightsleep(seconds):
-    # Do an ESP32 light sleep then return
-    ta = TimeAlarm(monotonic_time=monotonic() + seconds)
-    light_sleep_until_alarms(ta)
-
-def deepsleep(seconds):
-    # Do an ESP32 deep sleep, which does not return (alarm triggers reboot)
-    ta = TimeAlarm(monotonic_time=monotonic() + seconds)
-    exit_and_deep_sleep_until_alarms(ta)
 
 
 class SleepMem:
@@ -118,24 +104,21 @@ class Datalogger:
     def __init__(self):
         # Initialize 1-wire bus, temp sensor, sleep memory, and real time clock
         self.ow = OneWireBus(A1)
-        self.ds18b20 = self.find_ds18b20(retries=3)
+        self.ds18b20 = self.find_ds18b20()
         self.sleepmem = SleepMem()
         self.rtc = RTC()
 
-    def find_ds18b20(self, retries=3):
-        # Attempt to locate DS18B20 1-wire temp sensor with retries if needed
+    def find_ds18b20(self):
+        # Attempt to locate DS18B20 1-wire temp sensor
         if DEBUG:
             print("SCANNING 1-WIRE BUS:")
-        for i in range(retries):
-            for d in self.ow.scan():
-                fam = d.family_code
-                sn = d.serial_number
-                if fam == 0x28:
-                    if DEBUG:
-                        print(" fam:%02x, sn:%s" % (fam, sn.hex()))
-                    return DS18X20(self.ow, d)
-            # Wait a bit before retry if first attempt came up empty
-            lightsleep(0.2)
+        for d in self.ow.scan():
+            fam = d.family_code
+            sn = d.serial_number
+            if fam == 0x28:
+                if DEBUG:
+                    print(" fam:%02x, sn:%s" % (fam, sn.hex()))
+                return DS18X20(self.ow, d)
         return None
 
     def record(self, tempF):

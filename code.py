@@ -1,12 +1,21 @@
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: Copyright 2024 Sam Blenny
 #
+import alarm
+from alarm import (
+    light_sleep_until_alarms, exit_and_deep_sleep_until_alarms
+)
+from alarm.pin import PinAlarm
+from alarm.time import TimeAlarm
 from board import A3
-from datalogger import Datalogger, deepsleep, lightsleep
+from datalogger import Datalogger
 from digitalio import DigitalInOut, Direction, Pull
-import time
+from micropython import const
+from time import monotonic
 
 
+# The logging interval in seconds
+INTERVAL_S = const(60 * 20)
 
 def main():
     # This will run each time the board wakes from deep sleep.
@@ -18,19 +27,22 @@ def main():
     # allows re-connecting to USB to dump measurements after running on battery
     # power with deep sleeps.
     #
-    a3_gnd = DigitalInOut(A3)
-    a3_gnd.direction = Direction.INPUT
-    a3_gnd.pull = Pull.UP
-    first = True
-    if not a3_gnd.value:
-        F = dl.measure_temp_f()
-        print("1-wire: %d °F" % F)
-        while not a3_gnd.value:
-            lightsleep(1)
-            if first:
-                first = False
-                print("waiting while A3 at GND...")
-        print("done")
+    with DigitalInOut(A3) as a3_gnd:
+        a3_gnd.direction = Direction.INPUT
+        a3_gnd.pull = Pull.UP
+        first = True
+        if not a3_gnd.value:
+            F = dl.measure_temp_f()
+            print("1-wire: %d °F" % F)
+            while not a3_gnd.value:
+                seconds = 1
+                light_sleep_until_alarms(
+                    TimeAlarm(monotonic_time=monotonic() + seconds)
+                )
+                if first:
+                    first = False
+                    print("waiting while A3 at GND...")
+            print("done")
 
     # Record a measurement
     F = dl.measure_temp_f()
@@ -38,7 +50,10 @@ def main():
     dl.record(F)
 
     # Do an ESP32 deep sleep to save battery power
-    deepsleep(8)
+    exit_and_deep_sleep_until_alarms(
+        TimeAlarm(monotonic_time=monotonic() + INTERVAL_S),
+        PinAlarm(pin=A3, value=False, pull=True)
+    )
     # This doesn't return (exit to deep sleep)
 
 
