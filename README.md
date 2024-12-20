@@ -4,6 +4,97 @@
 
 **WORK IN PROGRESS (ALPHA)**
 
+These loggers are intended to *cheaply* record temperature logs from
+greenhouses used by hobby gardeners who visit the greenhouses several times per
+week, mostly during daylight hours. This design is meant to be a low cost
+incremental improvement on tracking temperature by hand with pencil and paper.
+The main goal is to be able to track what happens during off hours when no one
+is in the greenhouses. So, the loggers don't need to be fancy. Capacity to
+record measurements at 20 minute intervals for up to a week is adequate.
+
+To save cost, this design:
+
+1. Uses manual data collection where you periodically carry loggers between
+   deployment locations and a computer workstation someplace warm and dry
+
+2. Stores measurements in ESP32 sleep memory (RAM), which can be lost if the
+   battery goes flat
+
+3. Tracks time with the ESP32 internal real time clock (RTC) which is not very
+   accurate and loses its time entirely if the main battery goes flat
+
+Communication with the loggers uses USB serial and the CircuitPython REPL. To
+make USB usable without draining the batteries too fast, the logger boards have
+a jumper to wake up the USB stack. Normally, the boards spend most their time
+in deep sleep mode, which interferes with USB. The logger firmware is written
+to exit deep sleep mode and wake up the USB stack when it detects that pin A0
+has been jumpered to ground.
+
+
+## Usage
+
+Before deploying a logger you need to:
+
+1. Ensure the batteries are charged
+2. Reset the board, or manually clear the log memory of old measurements
+3. Set the RTC's time
+4. Remove the USB-mode jumper, add desiccant, and seal up the enclosure
+
+At the end of a logging period, you need to:
+
+1. Connect to the logger's CircuitPython REPL over USB serial
+2. Dump the log and save it to a CSV file
+3. Prepare the logger for redeployment or storage
+
+
+### Initial Setup Procedure:
+
+1. Unseal enclosure, remove board, install the A0 to GND jumper
+2. Connect USB cable
+3. Connect to the USB serial port and enter the REPL (Ctrl-C, then Enter)
+4. Import the `util` module, set RTC time with `util.set_clock()`
+5. [optional] Clear the log memory with `util.reset()`
+5. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
+6. Unplug USB cable
+7. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
+8. Put board back in enclosure, check desiccant, seal it up
+
+
+### Log Download Procedure:
+
+1. Unseal enclosure, remove board, install the A0 to GND jumper
+2. Connect USB cable
+3. Connect to the USB serial port and enter the REPL (Ctrl-C, then Enter)
+4. Import the `util` module
+5. Check RTC time with `util.now()`, noting actual time to check for drift
+6. Dump CSV format log with `util.dump()`
+7. Copy and paste log from serial terminal to a CSV file
+8. Check battery voltage with `util.batt()` or a multimeter (for boards that
+   use 3xAA pack and lack a built in fuel gauge).
+9. For boards with built in charger, leave USB connected until battery is full
+10. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
+11. Unplug USB cable
+12. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
+13. Put board back in enclosure, check desiccant, seal it up
+
+### Storage Procedure:
+
+1. Unseal the enclosure
+2. Disconnect the battery
+3. Put board back in enclosure, check desiccant, seal it up
+
+
+### List of `util` Functions for REPL
+
+Setup and log downloading works by entering the CircuitPython REPL, importing
+the `util` module, then calling functions from `util`:
+
+- `util.now()`: check RTC time
+- `util.set_clock()`: set RTC time
+- `util.dump()`: dump timestamped temperature log in CSV format
+- `util.reset()`: clear the log memory
+- `util.batt()`: check battery status on boards that have a MAX17048 fuel gauge
+
 
 ## Hardware
 
@@ -32,13 +123,18 @@ Battery Pack:
 - Metro/Feather Option: Adafruit Lithium Ion battery pack (400+ mAh)
 
 Enclosure:
-- Water resistant outdoor junction box with cable gland
+- IP65 or better water resistant outdoor junction box with cable gland
 - Silica gel desiccant pack (2g should be enough)
 
 
 ### Tools and Consumables
 
-You will need soldering tools and solder.
+You will need:
+- Soldering tools
+- Solder
+- Kapton tape or electrical tape
+- Drill with bit sized for installing the cable gland
+- Screwdriver for the enclosure screws
 
 
 ### Pinouts
