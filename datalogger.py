@@ -2,7 +2,6 @@
 # SPDX-FileCopyrightText: Copyright 2024 Sam Blenny
 #
 from alarm import sleep_memory
-from board import A1, A3
 from digitalio import DigitalInOut
 from neopixel_write import neopixel_write
 from micropython import const
@@ -40,6 +39,9 @@ PUMPKIN_HOUR = const(1867228927)
 
 # How many bits of timestamp to discard (3 bits means 8 second resolution)
 TIME_SHIFT = const(3)
+
+# Special value that gets recorded when there's a problem with the sensor
+NO_DATA = 0x80
 
 
 class SleepMem:
@@ -98,12 +100,9 @@ class SleepMem:
 
 class Datalogger:
 
-    # Special value that gets recorded when there's a problem with the sensor
-    NO_DATA = 0x80
-
-    def __init__(self):
+    def __init__(self, ow_pin):
         # Initialize 1-wire bus, temp sensor, sleep memory, and real time clock
-        self.ow = OneWireBus(A1)
+        self.ow = OneWireBus(ow_pin)
         self.ds18b20 = self.find_ds18b20()
         self.sleepmem = SleepMem()
         self.rtc = RTC()

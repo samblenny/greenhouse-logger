@@ -48,20 +48,30 @@ be sure to wire up the 3.3V pin (red wire). Parasitic power with the DS18B20
 sensors may be unreliable, particularly with the counterfeit sensors
 [which are very common](https://github.com/cpetrich/counterfeit_DS18B20).
 
-| Metro S3 | DS18B20      | 4.7 kΩ |
-| -------- | ------------ | ------ |
-| GND      | Black/Blue   |        |
-| 3.3      | Red          | Lead 1 |
-| A1       | Yellow/White | Lead 2 |
-
-
-| Qt Py S3 | DS18B20      | 4.7 kΩ | 3xAA holder |
+| Metro S3 | DS18B20      | 4.7 kΩ | GND Jumper  |
 | -------- | ------------ | ------ | ----------- |
-| GND      | Black/Blue   |        |             |
-| 3V       | Red          | Lead 1 |             |
+| GND      | Black/Blue   |        | DuPont wire |
+| 3.3      | Red          | Lead 1 |             |
+| A0       |              |        | DuPont wire |
 | A1       | Yellow/White | Lead 2 |             |
-| GND      |              |        | Black       |
-| BAT      |              |        | Red         |
+
+
+| Qt Py S3 | DS18B20      | 4.7 kΩ | GND Jumper | 3xAA holder |
+| -------- | ------------ | ------ | ---------- | ----------- |
+| GND      | Black/Blue   |        | pin header |             |
+| 3V       | Red          | Lead 1 |            |             |
+| A0       |              |        | pin header |             |
+| A1       | Yellow/White | Lead 2 |            |             |
+| GND (-)  |              |        |            | Black       |
+| BAT (+)  |              |        |            | Red         |
+
+
+| Feather ESP32-S3 | DS18B20      | 4.7 kΩ | GND Jumper |
+| ---------------- | ------------ | ------ | ---------- |
+| GND              | Black/Blue   |        | pin header |
+| 3V (by RST)      | Red          | Lead 1 |            |
+| A0               |              |        | pin header |
+| A1               | Yellow/White | Lead 2 |            |
 
 
 ### Soldering
@@ -73,6 +83,7 @@ sensors may be unreliable, particularly with the counterfeit sensors
 
 Dev Boards:
 - https://learn.adafruit.com/adafruit-metro-esp32-s3
+- https://learn.adafruit.com/adafruit-esp32-s3-feather
 - https://learn.adafruit.com/adafruit-qt-py-esp32-s3
 
 1-wire Temperature Sensing:

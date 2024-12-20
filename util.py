@@ -25,7 +25,11 @@ from datalogger import SleepMem, EPOCH, TIME_SHIFT
 
 def batt():
     # Check battery status on supported boards
-    if board_id == 'adafruit_metro_esp32s3':
+    has_max17 = (
+        'adafruit_metro_esp32s3',
+        'adafruit_feather_esp32s3_nopsram',
+    )
+    if board_id in has_max17:
         with I2C() as i2c:
             max17 = MAX17048(i2c)
             ver = max17.chip_version
@@ -36,6 +40,8 @@ def batt():
             volts = max17.cell_voltage
             percent = max17.cell_percent
             print("BATTERY: %.2fV, %.1f%%" % (volts, percent))
+    elif board_id == 'adafruit_qtpy_esp32s3_4mbflash_2mbpsram':
+        print("Battery voltage monitoring not available on Qt PY ESP32-S3")
     else:
         print("Battery check for this board is not implemented yet")
 
