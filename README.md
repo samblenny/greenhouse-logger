@@ -53,11 +53,14 @@ At the end of a logging period, you need to:
 2. Connect USB cable
 3. Connect to the USB serial port and enter the REPL (Ctrl-C, then Enter)
 4. Import the `util` module, set RTC time with `util.set_clock()`
-5. [optional] Clear the log memory with `util.reset()`
-5. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
-6. Unplug USB cable
-7. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
-8. Put board back in enclosure, check desiccant, seal it up
+5. Check battery voltage with `util.batt()` or a multimeter (for boards that
+   use 3xAA pack and lack a built in fuel gauge).
+6. For boards with built in charger, leave USB connected until battery is full
+7. [optional] Clear the log memory with `util.reset()`
+8. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
+9. Unplug USB cable
+10. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
+11. Put board back in enclosure, check desiccant, seal it up
 
 
 ### Log Download Procedure:
@@ -77,10 +80,11 @@ At the end of a logging period, you need to:
 12. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
 13. Put board back in enclosure, check desiccant, seal it up
 
+
 ### Storage Procedure:
 
 1. Unseal the enclosure
-2. Disconnect the battery
+2. Disconnect battery
 3. Put board back in enclosure, check desiccant, seal it up
 
 
@@ -91,9 +95,9 @@ the `util` module, then calling functions from `util`:
 
 - `util.now()`: check RTC time
 - `util.set_clock()`: set RTC time
+- `util.batt()`: check battery status on boards that have a MAX17048 fuel gauge
 - `util.dump()`: dump timestamped temperature log in CSV format
 - `util.reset()`: clear the log memory
-- `util.batt()`: check battery status on boards that have a MAX17048 fuel gauge
 
 
 ## Hardware
