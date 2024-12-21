@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: Copyright 2024 Sam Blenny
-#
 from alarm import sleep_memory
 from digitalio import DigitalInOut
 from neopixel_write import neopixel_write

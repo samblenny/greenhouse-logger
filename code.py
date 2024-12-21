@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: Copyright 2024 Sam Blenny
-#
 import alarm
 from alarm import (
     light_sleep_until_alarms, exit_and_deep_sleep_until_alarms

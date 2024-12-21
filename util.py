@@ -1,17 +1,5 @@
-# SPDX-License-Identifier: MIT
-# SPDX-FileCopyrightText: Copyright 2024 Sam Blenny
-#
 # These are utility functions for configuring the datalogger and exporting
 # logged data. This is meant to be used manually from the serial REPL.
-# For example:
-# >>> import util
-# >>> util.set_clock()
-# ...
-# >>> util.reset()
-# ...
-# >>> util.dump()
-# ...
-#
 from alarm import sleep_memory
 from board import board_id, I2C
 from rtc import RTC
