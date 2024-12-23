@@ -36,9 +36,10 @@ has been jumpered to ground.
 Before deploying a logger you need to:
 
 1. Ensure the batteries are charged
-2. Reset the board, or manually clear the log memory of old measurements
-3. Set the RTC's time
-4. Remove the USB-mode jumper, add desiccant, and seal up the enclosure
+2. Set the board's real time clock (RTC) which also clears the log memory
+3. Remove the USB-mode jumper
+4. Check the desiccant pack
+5. Seal up the enclosure
 
 At the end of a logging period, you need to:
 
@@ -52,15 +53,17 @@ At the end of a logging period, you need to:
 1. Unseal enclosure, remove board, install the A0 to GND jumper
 2. Connect USB cable
 3. Connect to the USB serial port and enter the REPL (Ctrl-C, then Enter)
-4. Import the `util` module, set RTC time with `util.set_clock()`
-5. Check battery voltage with `util.batt()` or a multimeter (for boards that
-   use 3xAA pack and lack a built in fuel gauge).
-6. For boards with built in charger, leave USB connected until battery is full
-7. [optional] Clear the log memory with `util.reset()`
-8. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
-9. Unplug USB cable
-10. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
-11. Put board back in enclosure, check desiccant, seal it up
+4. Import the `util` module, set RTC time with `util.set_clock()`. Note that
+   setting the time also updates the epoch (so timestamps fit in 16-bits) and
+   clears the log memory (because epoch changed).
+5. Check battery voltage with `util.batt()`
+6. For boards with built in charger, leave USB connected until battery is full.
+   For boards without a charger, disconnect battery, charge it however you can,
+   then reconnect it.
+7. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
+8. Unplug USB cable
+9. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
+10. Put board back in enclosure, check desiccant, seal it up
 
 
 ### Log Download Procedure:
@@ -72,9 +75,10 @@ At the end of a logging period, you need to:
 5. Check RTC time with `util.now()`, noting actual time to check for drift
 6. Dump CSV format log with `util.dump()`
 7. Copy and paste log from serial terminal to a CSV file
-8. Check battery voltage with `util.batt()` or a multimeter (for boards that
-   use 3xAA pack and lack a built in fuel gauge).
-9. For boards with built in charger, leave USB connected until battery is full
+8. Check battery voltage with `util.batt()`
+9. For boards with built in charger, leave USB connected until battery is full.
+   For boards without a charger, disconnect battery, charge it however you can,
+   then reconnect it.
 10. Exit the REPL (Ctrl-D), disconnect serial terminal, eject CIRCUITPY drive
 11. Unplug USB cable
 12. [VERY IMPORTANT] Remove A0 to GND jumper (move it to just the GND pin)
@@ -94,10 +98,9 @@ Setup and log downloading works by entering the CircuitPython REPL, importing
 the `util` module, then calling functions from `util`:
 
 - `util.now()`: check RTC time
-- `util.set_clock()`: set RTC time
+- `util.set_clock()`: set RTC time, set epoch, and clear log
 - `util.batt()`: check battery status on boards that have a MAX17048 fuel gauge
-- `util.dump()`: dump timestamped temperature log in CSV format
-- `util.reset()`: clear the log memory
+- `util.dump()`: dump timestamped temperature and battery log in CSV format
 
 
 ## Hardware
@@ -118,13 +121,12 @@ Temperature Sensor and Setup-Mode Jumper:
 - Waterproof 1-Wire DS18B20 Digital temperature sensor
 - 4.7 kΩ thru-hole resistor
 - Hookup wire
-- Heat shrink tubing or electrical tape (prevent shorts)
-- Proto PCB (optional, for keeping soldered wiring neater)
+- Proto PCB or FeatherWing Doubler
 - Male header pins + 2 position removable jumper (or F-F DuPont wire)
 
 Battery Pack:
-- Qt PY option: 3xAA or 3xAAA battery holder + matching NiMH batteries
-- Metro/Feather Option: Adafruit Lithium Ion battery pack (400+ mAh)
+- Qt Py Option: JST PH 2-Pin Cable (M) and 400+ mAh LiPo battery pack
+- Metro/Feather Option: 400+ mAh LiPo battery pack
 
 Enclosure:
 - IP65 or better water resistant outdoor junction box with cable gland
@@ -136,7 +138,8 @@ Enclosure:
 You will need:
 - Soldering tools
 - Solder
-- Kapton tape or electrical tape
+- Kapton tape
+- Electrical tape
 - Drill with bit sized for installing the cable gland
 - Screwdriver for the enclosure screws
 
@@ -156,14 +159,14 @@ sensors may be unreliable, particularly with the counterfeit sensors
 | A1       | Yellow/White | Lead 2 |             |
 
 
-| Qt Py S3 | DS18B20      | 4.7 kΩ | GND Jumper | 3xAA holder |
-| -------- | ------------ | ------ | ---------- | ----------- |
-| GND      | Black/Blue   |        | pin header |             |
-| 3V       | Red          | Lead 1 |            |             |
-| A0       |              |        | pin header |             |
-| A1       | Yellow/White | Lead 2 |            |             |
-| GND (-)  |              |        |            | Black       |
-| BAT (+)  |              |        |            | Red         |
+| Qt Py S3 | DS18B20      | 4.7 kΩ | GND Jumper | JST PH cable |
+| -------- | ------------ | ------ | ---------- | ------------ |
+| GND      | Black/Blue   |        | pin header |              |
+| 3V       | Red          | Lead 1 |            |              |
+| A0       |              |        | pin header |              |
+| A1       | Yellow/White | Lead 2 |            |              |
+| GND (-)  |              |        |            | Black        |
+| BAT (+)  |              |        |            | Red          |
 
 
 | Feather ESP32-S3 | DS18B20      | 4.7 kΩ | GND Jumper |

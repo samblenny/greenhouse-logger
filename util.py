@@ -4,11 +4,12 @@ from alarm import sleep_memory
 from board import board_id, I2C
 from rtc import RTC
 from struct import unpack
-from time import struct_time, sleep
+import time
+from time import mktime, sleep, struct_time
 
 from adafruit_datetime import datetime
 from adafruit_max1704x import MAX17048
-from datalogger import SleepMem, EPOCH, TIME_SHIFT
+from datalogger import SleepMem
 
 
 def batt():
@@ -38,25 +39,27 @@ def dump():
     sm = SleepMem()
     percent = 100 * (sm.end - sm.DATA) / (len(sleep_memory) - sm.DATA)
     print("# NVRAM end index: %d (%.0f%% of buffer)" % (sm.end, percent))
-    print("Date Time,Degrees F")
+    print("Date Time,°F,Batt%")
     for i in range(sm.DATA, sm.end, 4):
         data_u32 = unpack("<I", sleep_memory[i:i+4])[0]   # unsigned u32
-        timestamp = (data_u32 >> (8 - TIME_SHIFT)) + EPOCH
-        date_str = datetime.fromtimestamp(timestamp)
-        tempF = unpack("<b", sleep_memory[i:i+1])[0]      # signed i8
-        print('%s,%d' % (date_str, tempF))
-
-def reset():
-    ans = input("This will delete your data, are you sure? [y/N]: ")
-    if ans in ["y", "Y"]:
-        for i in range(len(sleep_memory)):
-            sleep_memory[i] = 0
-        print("SLEEP MEMORY CLEARED")
+        timestamp = (data_u32 >> (16 - sm.TIME_SHIFT)) + sm.epoch
+        (mon,d,h,min_,s) = datetime.fromtimestamp(timestamp).timetuple()[1:6]
+        tempF = unpack("<b", sleep_memory[i+1:i+2])[0]    # signed i8
+        batt =  unpack("<b", sleep_memory[i:i+1])[0]      # signed i8
+        print('%d/%d %02d:%02d,%d,%d' % (mon, d, h, min_, s, tempF, batt))
 
 def set_clock():
-    # Set the ESP32 RTC
+    # Clear memory, set real time clock (RTC) time, set epoch
+    ans = input("This will delete your data, are you sure? [y/N]: ")
+    if not (ans in ["y", "Y"]):
+        print("RESET CANCELED")
+        return
+    # Clear sleep memory
+    for i in range(len(sleep_memory)):
+        sleep_memory[i] = 0
+    print("SLEEP MEMORY CLEARED")
+    # Set clock
     rtc = RTC()
-    print("Current RTC time: ", now())
     print("Set RTC time...")
     try:
         y    = int(input("   year: "))
@@ -70,9 +73,18 @@ def set_clock():
         print("new RTC time: ", now())
     except ValueError as e:
         print("ERROR Bad value:", e)
+    # Set epoch
+    sm = SleepMem()
+    sm.epoch = time.time()
+    print("new epoch is: ", sm.epoch)
 
 def now():
     # Return ESP32-S3 RTC time formatted as a string
     rtc = RTC()
-    return "%04d-%02d-%02d %02d:%02d:%02d" % (rtc.datetime)[0:6]
+    struct_ = rtc.datetime
+    timestamp = mktime(struct_)
+    sm = SleepMem()
+    return "%04d-%02d-%02d %02d:%02d:%02d (epoch + %d)" % (
+        (rtc.datetime)[0:6] + (timestamp - sm.epoch,)
+    )
 

@@ -43,8 +43,9 @@ def main():
 
     # Record a measurement
     F = dl.measure_temp_f()
-    print("DS18B20: %d °F" % F)
-    dl.record(F)
+    batt = dl.batt_percent()
+    print("DS18B20: %d °F, batt: %d" % (F, batt))
+    dl.record(F, batt)
 
     # Do an ESP32 deep sleep to save battery power
     exit_and_deep_sleep_until_alarms(

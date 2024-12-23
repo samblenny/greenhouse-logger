@@ -1,4 +1,6 @@
-from alarm import sleep_memory
+from alarm import sleep_memory, light_sleep_until_alarms
+from alarm.time import TimeAlarm
+from board import board_id, I2C
 from digitalio import DigitalInOut
 from neopixel_write import neopixel_write
 from micropython import const
@@ -9,50 +11,33 @@ import time
 
 from adafruit_onewire.bus import OneWireBus
 from adafruit_ds18x20 import DS18X20
+from adafruit_max1704x import MAX17048
 
 
 # Set this to True for additional debug prints
 DEBUG = False
-
-# For timestamping, this uses shifted and scaled unix timestamps with a
-# resolution of 8 seconds. By using an epoch of 2024-12-01 instead of
-# 1970-01-01, we can fit timestamps in 24 bits and the code will still work
-# fine out to 2029-03-03. By using 24 bits for the timestamp and 8 bits for the
-# temperature measurement, we can fit 1000 measurements in the 4096 byte
-# ESP32-S3 sleep memory (allowing 96 byte header for other data).
-#
-# Epoch is Unix timestamp for 2024-12-01 00:00:00
-#   >>> time.mktime((2024,12,1,0,0,0,0,-1,-1))
-#   1733011200
-EPOCH = const(1733011200)
-
-# Pumpkin hour is the last timestamp that fits in 27 bits from epoch
-#   >>> datetime.fromtimestamp(time.mktime((2024,12,1,0,0,0,0,-1,-1)) +
-#   ... ((2**27)-1))
-#   datetime.datetime(2029, 3, 3, 10, 42, 7)
-#   >>> time.mktime((2024,12,1,0,0,0,0,-1,-1)) + ((2**27)-1)
-#   1867228927
-PUMPKIN_HOUR = const(1867228927)
-
-# How many bits of timestamp to discard (3 bits means 8 second resolution)
-TIME_SHIFT = const(3)
 
 # Special value that gets recorded when there's a problem with the sensor
 NO_DATA = 0x80
 
 
 class SleepMem:
-    # Use ESP32-S3 4096 byte sleep memory as buffer for measurements
+    # Use ESP32-S3 4096 byte sleep memory as buffer for measurements.
 
     HEADER = const(0)
     DATA = const(96)
-    END = const(HEADER + 2)
-    TEMP_OOR = const(HEADER + 3)
-    TIME_OOR = const(HEADER + 4)
+    END = const(HEADER)        # length 2
+    EPOCH = const(HEADER + 2)  # length 8
+
+    TIME_SHIFT = const(5)      # quantize times to 32 seconds
+    TIME_MASK = const(0xFFFF)  # max time is ((2**16-1)<<5)/60/60/24 = 24 days
 
     def __init__(self):
+        # Set some non-terrible defaults on first boot or after a hard reset
         if self.end == 0:
             self.end = DATA
+        if self.epoch == 0:
+            self.epoch = time.time()
 
     @property
     def end(self):
@@ -66,30 +51,46 @@ class SleepMem:
         clipped_val = max(DATA, min(val, len(sleep_memory)))
         sleep_memory[END:END+2] = pack('<H', clipped_val)
 
-    @end.deleter
-    def end(self):
-        # Intentional NOP because deleting NV sleep memory is not meaningful
-        pass
+#     @end.deleter
+#     def end(self):
+#         # Intentional NOP because deleting NV sleep memory is not meaningful
+#         pass
 
-    def append_data(self, timestamp, tempF):
-        # Append a measurement (24-bit time + 8-bit temperature) to buffer
+    @property
+    def epoch(self):
+        # Getter for epoch timestamp (32-bit unsigned int)
+        return unpack('<I', sleep_memory[EPOCH:EPOCH+4])[0]
+
+    @epoch.setter
+    def epoch(self, val):
+        # Setter for epoch timestamp (32-bit unsigned int)
+        sleep_memory[EPOCH:EPOCH+4] = pack('<I', val & 0xFFFFFFFF)
+
+#     @epoch.deleter
+#     def epoch(self):
+#         # Intentional NOP because deleting NV sleep memory is not meaningful
+#         pass
+
+    def append_data(self, timestamp, tempF, batt):
+        # Append measurements to buffer: 16-bit time, 8-bit temp, 8-bit battery
         n = self.end
-        # Make a note in sleep_memory if temperature is out of range
+        # Warn if temperature is out of range
         if (tempF < -128) or (127 < tempF):
             print("WARNING: TEMPERATURE OUT OF RANGE", tempF)
-            sleep_memory[TEMP_OOR] = 1
-        # Make a note in sleep_memory if timestamp is out of range
-        if (timestamp < EPOCH) or (PUMPKIN_HOUR < timestamp):
+        # Warn if timestamp is out of range
+        if (
+            (timestamp < self.epoch)
+            or ((timestamp - self.epoch) >> TIME_SHIFT) > 0xFFFF
+            ):
             print("WARNING: TIMESTAMP OUT OF RANGE", timestamp)
-            sleep_memory[TIME_OOR] = 1
-        # Pack timestamp as 24 bits and temp as 8 bits, save in sleep_memory.
-        # To save space, this quantizes the timestamps to 8 second intervals.
-        # Out of range values will be masked with & 0xFF...
+        # Pack timestamp as 16 bits, temp as 8 bits, battery as 8 bits, and
+        # save them in sleep_memory. To save space, this quantizes the
+        # timestamps. Out of range values will be masked with & 0xFF...
         if n + 4 < len(sleep_memory):
-            ts_u24 = ((timestamp - EPOCH) >> TIME_SHIFT) & 0xFFFFFF
-            data_u32 = (ts_u24 << 8) | (tempF & 0xFF)
+            ts_u24 = ((timestamp - self.epoch) >> TIME_SHIFT) & TIME_MASK
+            data_u32 = (ts_u24 << 16) | (tempF & 0xFF) << 8 | (batt & 0xFF)
             sleep_memory[n:n+4] = pack("<I", data_u32)
-            print("sleep_memory[%d] = %d" % (n, tempF))
+            print("sleep_memory[%d] = %d F, %d%%" % (n, tempF, batt))
             self.end = n + 4
         else:
             print("WARNING: BUFFER IS FULL")
@@ -117,11 +118,13 @@ class Datalogger:
                 return DS18X20(self.ow, d)
         return None
 
-    def record(self, tempF):
-        # Save timestamped temperature measurement in ESP32 sleep memory.
+    def record(self, tempF, batt):
+        # Save timestamped measurements in ESP32 sleep memory.
         if (type(tempF) != int) or (tempF < -128) or (127 < tempF):
             tempF = NO_DATA
-        self.sleepmem.append_data(time.time(), tempF)
+        if (type(batt) != int) or (batt < -20) or (120 < batt):
+            batt = NO_DATA
+        self.sleepmem.append_data(time.time(), tempF, batt)
 
     def measure_temp_f(self):
         # Return a temperature measurement in Fahrenheit (int8)
@@ -129,3 +132,23 @@ class Datalogger:
             # .temperature is Celsius (float), so convert it
             return round((self.ds18b20.temperature * 1.8) + 32)
         return NO_DATA
+
+    def batt_percent(self):
+        # Check battery status on supported boards
+        has_max17 = (
+            'adafruit_metro_esp32s3',
+            'adafruit_feather_esp32s3_nopsram',
+        )
+        if board_id in has_max17:
+            with I2C() as i2c:
+                max17 = MAX17048(i2c)
+                max17.wake()
+                seconds = 0.5
+                light_sleep_until_alarms(
+                    TimeAlarm(monotonic_time=monotonic() + seconds)
+                )
+                percent = round(max17.cell_percent)  # above 100% is possible!
+                return max(-20, min(120, percent))
+        else:
+            return NO_DATA
+
