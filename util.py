@@ -46,7 +46,7 @@ def dump():
         (mon,d,h,min_,s) = datetime.fromtimestamp(timestamp).timetuple()[1:6]
         tempF = unpack("<b", sleep_memory[i+1:i+2])[0]    # signed i8
         batt =  unpack("<b", sleep_memory[i:i+1])[0]      # signed i8
-        print('%d/%d %02d:%02d,%d,%d' % (mon, d, h, min_, s, tempF, batt))
+        print('%d/%d %02d:%02d,%d,%d' % (mon, d, h, min_, tempF, batt))
 
 def set_clock():
     # Clear memory, set real time clock (RTC) time, set epoch
