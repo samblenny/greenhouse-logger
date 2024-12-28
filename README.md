@@ -1,10 +1,12 @@
-<!-- SPDX-License-Identifier: MIT -->
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 <!-- SPDX-FileCopyrightText: Copyright 2024 Sam Blenny -->
 # Greenhouse Logger
 
 These loggers track temperatures in greenhouses. The main design goal is to
 cheaply record how different greenhouse structures respond to a range of
 weather conditions, particularly in off hours when no gardeners are present.
+
+![fully assembled greenhouse temperature logger](img/greenhouse-logger-10.jpeg)
 
 The loggers don't need to be fancy. Capacity to record measurements at 20
 minute intervals for up to a week is adequate.
@@ -175,9 +177,38 @@ sensors may be unreliable, particularly with the counterfeit sensors
 | BAT (+)  |              |        |            | Red          |
 
 
-### Soldering
+### Soldering and Assembly
 
-*TODO*
+1. Solder male pin headers to Feather board. Solder female pin headers, 4.7kΩ
+   resistor and 2-position jumper header to perma proto board. Prepare 1-wire
+   temperature sensor cable for soldering:
+
+   ![Feather, battery, and partially assembled perma-proto board](img/greenhouse-logger-3.jpeg)
+
+2. Test fit battery to be sure it will fit with the temperature sensor wires:
+
+   ![Test assembly to check battery fit](img/greenhouse-logger-5.jpeg)
+
+3. Solder temperature sensor wires and secure cable with Kapton tape. The main
+   goal here is to make sure there is no risk of puncturing the battery:
+
+   ![Perma proto board with Kapton tape, top view](img/greenhouse-logger-6.jpeg)
+
+   ![Perma proto board with Kapton tape, bottom view](img/greenhouse-logger-7.jpeg)
+
+4. Install the Feather board and cover the pins next to the USB-mode jumper
+   with Kapton tape:
+
+   ![Detail view showing area around the USB mode jumper](img/greenhouse-logger-8.jpeg)
+
+6. Prepare the enclosure (drill hole for cable gland, install gasket, etc).
+   Mount the Perma proto bard onto a base plate (Tamiya Universal Plate, etc)
+   with M3 Nylon screws and standoffs so it won't rattle around inside the
+   enclosure:
+
+   ![Mostly assembled logger with open enclosure](img/greenhouse-logger-9.jpeg)
+
+   ![Fully assembled logger](img/greenhouse-logger-10.jpeg)
 
 
 ## Related Documentation:

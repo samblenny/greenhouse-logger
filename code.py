@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 import alarm
 from alarm import (
     light_sleep_until_alarms, exit_and_deep_sleep_until_alarms

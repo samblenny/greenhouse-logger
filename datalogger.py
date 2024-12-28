@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 from alarm import sleep_memory, light_sleep_until_alarms
 from alarm.time import TimeAlarm
 from board import board_id, I2C

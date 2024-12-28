@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+#
 # These are utility functions for configuring the datalogger and exporting
 # logged data. This is meant to be used manually from the serial REPL.
 from alarm import sleep_memory
