@@ -2,15 +2,12 @@
 <!-- SPDX-FileCopyrightText: Copyright 2024 Sam Blenny -->
 # Greenhouse Logger
 
-**WORK IN PROGRESS (ALPHA)**
+These loggers track temperatures in greenhouses. The main design goal is to
+cheaply record how different greenhouse structures respond to a range of
+weather conditions, particularly in off hours when no gardeners are present.
 
-These loggers are intended to *cheaply* record temperature logs from
-greenhouses used by hobby gardeners who visit the greenhouses several times per
-week, mostly during daylight hours. This design is meant to be a low cost
-incremental improvement on tracking temperature by hand with pencil and paper.
-The main goal is to be able to track what happens during off hours when no one
-is in the greenhouses. So, the loggers don't need to be fancy. Capacity to
-record measurements at 20 minute intervals for up to a week is adequate.
+The loggers don't need to be fancy. Capacity to record measurements at 20
+minute intervals for up to a week is adequate.
 
 To save cost, this design:
 
@@ -113,6 +110,7 @@ whatever is cheap and available. Each logger needs a dev board, temperature
 sensor, setup-mode jumper, battery pack, and enclosure.
 
 ESP32-S3 Dev Board:
+- Adafruit ESP32-S3 Feather - 8MB Flash No PSRAM (#5323)
 - Adafruit Metro ESP32-S3 - 16 MB Flash, 8 MB PSRAM (#5500)
 - Adafruit QT Py ESP32-S3 - 8 MB Flash, No PSRAM (#5426)
 - Adafruit QT Py ESP32-S3 - 4 MB Flash, 2MB PSRAM (#5700)
@@ -125,8 +123,8 @@ Temperature Sensor and Setup-Mode Jumper:
 - Male header pins + 2 position removable jumper (or F-F DuPont wire)
 
 Battery Pack:
-- Qt Py Option: JST PH 2-Pin Cable (M) and 400+ mAh LiPo battery pack
 - Metro/Feather Option: 400+ mAh LiPo battery pack
+- Qt Py Option: JST PH 2-Pin Cable (M) and 400+ mAh LiPo battery pack
 
 Enclosure:
 - IP65 or better water resistant outdoor junction box with cable gland
@@ -151,6 +149,14 @@ be sure to wire up the 3.3V pin (red wire). Parasitic power with the DS18B20
 sensors may be unreliable, particularly with the counterfeit sensors
 [which are very common](https://github.com/cpetrich/counterfeit_DS18B20).
 
+| Feather ESP32-S3 | DS18B20      | 4.7 kΩ | GND Jumper |
+| ---------------- | ------------ | ------ | ---------- |
+| GND              | Black/Blue   |        | pin header |
+| 3V (by RST)      | Red          | Lead 1 |            |
+| A0               |              |        | pin header |
+| A1               | Yellow/White | Lead 2 |            |
+
+
 | Metro S3 | DS18B20      | 4.7 kΩ | GND Jumper  |
 | -------- | ------------ | ------ | ----------- |
 | GND      | Black/Blue   |        | DuPont wire |
@@ -169,14 +175,6 @@ sensors may be unreliable, particularly with the counterfeit sensors
 | BAT (+)  |              |        |            | Red          |
 
 
-| Feather ESP32-S3 | DS18B20      | 4.7 kΩ | GND Jumper |
-| ---------------- | ------------ | ------ | ---------- |
-| GND              | Black/Blue   |        | pin header |
-| 3V (by RST)      | Red          | Lead 1 |            |
-| A0               |              |        | pin header |
-| A1               | Yellow/White | Lead 2 |            |
-
-
 ### Soldering
 
 *TODO*
@@ -185,8 +183,8 @@ sensors may be unreliable, particularly with the counterfeit sensors
 ## Related Documentation:
 
 Dev Boards:
-- https://learn.adafruit.com/adafruit-metro-esp32-s3
 - https://learn.adafruit.com/adafruit-esp32-s3-feather
+- https://learn.adafruit.com/adafruit-metro-esp32-s3
 - https://learn.adafruit.com/adafruit-qt-py-esp32-s3
 
 1-wire Temperature Sensing:
@@ -223,6 +221,7 @@ MAX17048 Battery Fuel Gauge:
 
 1. Download the CircuitPython 9.2.1 **.BIN** file from the relevant page on
    circuitpython.org:
+   - [Adafruit Feather ESP32-S3 No PSRAM](https://circuitpython.org/board/adafruit_feather_esp32s3_nopsram/)
    - [Adafruit Metro ESP32-S3](https://circuitpython.org/board/adafruit_metro_esp32s3/)
    - [Adafruit QT Py ESP32-S3 4MB Flash/2MB PSRAM](https://circuitpython.org/board/adafruit_qtpy_esp32s3_4mbflash_2mbpsram/)
    - [Adafruit QT Py ESP32-S3 No PSRAM](https://circuitpython.org/board/adafruit_qtpy_esp32s3_nopsram/)
