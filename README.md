@@ -190,14 +190,15 @@ sensors may be unreliable, particularly with the counterfeit sensors
    ![Test assembly to check battery fit](img/greenhouse-logger-5.jpeg)
 
 3. Solder temperature sensor wires and secure cable with Kapton tape. The main
-   goal here is to make sure there is no risk of puncturing the battery:
+   goal here is to protect against the possibility of puncturing the battery or
+   shorting pins while handling the board to download log data:
 
    ![Perma proto board with Kapton tape, top view](img/greenhouse-logger-6.jpeg)
 
    ![Perma proto board with Kapton tape, bottom view](img/greenhouse-logger-7.jpeg)
 
 4. Install the Feather board and cover the pins next to the USB-mode jumper
-   with Kapton tape:
+   with Kapton tape (protect against static and shorts during data download):
 
    ![Detail view showing area around the USB mode jumper](img/greenhouse-logger-8.jpeg)
 
