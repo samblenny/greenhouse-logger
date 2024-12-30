@@ -3,6 +3,7 @@
 # These are utility functions for configuring the datalogger and exporting
 # logged data. This is meant to be used manually from the serial REPL.
 from alarm import sleep_memory
+import board
 from board import board_id, I2C
 from rtc import RTC
 from struct import unpack
@@ -11,30 +12,16 @@ from time import mktime, sleep, struct_time
 
 from adafruit_datetime import datetime
 from adafruit_max1704x import MAX17048
-from datalogger import SleepMem
+
+from battery import battery_status
+from redled import RedLED
+from sleepmem import SleepMem
 
 
 def batt():
     # Check battery status on supported boards
-    has_max17 = (
-        'adafruit_metro_esp32s3',
-        'adafruit_feather_esp32s3_nopsram',
-    )
-    if board_id in has_max17:
-        with I2C() as i2c:
-            max17 = MAX17048(i2c)
-            ver = max17.chip_version
-            chip_id = max17.chip_id
-            print("MAX17: ver=%02X, chip_id=%02X" % (ver, chip_id))
-            max17.wake()
-            sleep(0.5)
-            volts = max17.cell_voltage
-            percent = max17.cell_percent
-            print("BATTERY: %.2fV, %.1f%%" % (volts, percent))
-    elif board_id == 'adafruit_qtpy_esp32s3_4mbflash_2mbpsram':
-        print("Battery voltage monitoring not available on Qt PY ESP32-S3")
-    else:
-        print("Battery check for this board is not implemented yet")
+    (src, volts, percent) = battery_status()
+    print('%s: %.2fV, %.1f%%' % (src or '--', volts or 0, percent or 0))
 
 def dump():
     # Print the data log in CSV format to serial console
@@ -90,3 +77,19 @@ def now():
         (rtc.datetime)[0:6] + (timestamp - sm.epoch,)
     )
 
+# Assigning the led object to a global avoids pin in use errors if you want to
+# call util.discharge() more than once (testing, change your mind, etc)
+_LED = None
+
+def discharge(val):
+    # Prepare battery discharge feature to activate when USB is unplugged
+    sm = SleepMem()
+    sm.discharge = val
+    global _LED
+    if not _LED:
+        _LED = RedLED()
+    _LED.value = val
+    if val:
+        print("BATTERY DISCHARGE = ARMED (begins when USB unplugged)")
+    else:
+        print("BATTERY DISCHARGE = DISARMED")
