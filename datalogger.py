@@ -1,98 +1,66 @@
 # SPDX-License-Identifier: MIT
-from alarm import sleep_memory, light_sleep_until_alarms
-from alarm.time import TimeAlarm
-from board import board_id, I2C
+from board import board_id, A1, I2C
 from digitalio import DigitalInOut
 from micropython import const
 from rtc import RTC
-from struct import pack, unpack
-from time import monotonic
 import time
+from time import sleep
 
 from adafruit_onewire.bus import OneWireBus
 from adafruit_ds18x20 import DS18X20
 from adafruit_max1704x import MAX17048
 
-from sleepmem import SleepMem
-
-
-# Set this to True for additional debug prints
-DEBUG = False
 
 # Special value that gets recorded when there's a problem with the sensor
-NO_DATA = 0x80
+NO_DATA = const(0x80)
+
+# Pin for the 1-wire bus
+ONEWIRE_PIN = A1
+
+# Singleton for the 1-wire bus object to avoid pin in use errors
+_1WIRE = None
 
 
-class Datalogger:
+def has_max17():
+    # Does this board have a MAX17048 battery fuel gauge? (return True/False)
+    return board_id in (
+        'adafruit_metro_esp32s3',
+        'adafruit_feather_esp32s3_nopsram',
+    )
 
-    def __init__(self, ow_pin):
-        # Initialize 1-wire bus, temp sensor, sleep memory, and real time clock
-        self.ow = OneWireBus(ow_pin)
-        self.ds18b20 = self.find_ds18b20()
-        self.sleepmem = SleepMem()
-        self.rtc = RTC()
+def has_A3_divider():
+    # Does this board have a battery voltage divider on A3? (return True/False)
+    return board_id in (
+        'adafruit_qtpy_esp32s3_4mbflash_2mbpsram',
+    )
 
-    def find_ds18b20(self):
-        # Attempt to locate DS18B20 1-wire temp sensor
-        if DEBUG:
-            print("SCANNING 1-WIRE BUS:")
-        for d in self.ow.scan():
-            fam = d.family_code
-            sn = d.serial_number
-            if fam == 0x28:
-                if DEBUG:
-                    print(" fam:%02x, sn:%s" % (fam, sn.hex()))
-                return DS18X20(self.ow, d)
-        return None
+def battery_centivolts():
+    # Return battery voltage (cV), or None if measurement is unavailable.
+    # Note that 3.70V = 370cV, 4.19V = 419cV, etc. Using centi-Volts makes it
+    # more convenient to send the voltage measurement in Morse code.
+    cV = None
+    if has_max17():
+        with I2C() as i2c:
+            max17 = MAX17048(i2c)
+            max17.wake()
+            sleep(0.5)
+            cV = round(max17.cell_voltage * 100)
+    elif has_A3_divider():
+        pass
+    return cV
 
-    def record(self, tempF, batt):
-        # Save timestamped measurements in ESP32 sleep memory.
-        if (type(tempF) != int) or (tempF < -128) or (127 < tempF):
-            tempF = NO_DATA
-        if (type(batt) != int) or (batt < -20) or (120 < batt):
-            batt = NO_DATA
-        self.sleepmem.append_data(time.time(), tempF, batt)
-
-    def measure_temp_f(self):
-        # Return a temperature measurement in Fahrenheit (int8)
-        if self.ds18b20:
-            # .temperature is Celsius (float), so convert it
-            return round((self.ds18b20.temperature * 1.8) + 32)
-        return NO_DATA
-
-    def batt_percent(self):
-        # Check battery status on supported boards
-        has_max17 = (
-            'adafruit_metro_esp32s3',
-            'adafruit_feather_esp32s3_nopsram',
-        )
-        if board_id in has_max17:
-            with I2C() as i2c:
-                max17 = MAX17048(i2c)
-                max17.wake()
-                seconds = 0.5
-                light_sleep_until_alarms(
-                    TimeAlarm(monotonic_time=monotonic() + seconds)
-                )
-                percent = round(max17.cell_percent)  # above 100% is possible!
-                return max(-20, min(120, percent))
-        else:
-            return NO_DATA
-
-    def batt_volts(self):
-        # Check battery voltage on supported boards (unsupported: return None)
-        has_max17 = (
-            'adafruit_metro_esp32s3',
-            'adafruit_feather_esp32s3_nopsram',
-        )
-        if board_id in has_max17:
-            with I2C() as i2c:
-                max17 = MAX17048(i2c)
-                max17.wake()
-                seconds = 0.5
-                light_sleep_until_alarms(
-                    TimeAlarm(monotonic_time=monotonic() + seconds)
-                )
-                return max17.cell_voltage
-        else:
-            return None
+def temp_f():
+    # Return a temperature measurement in Fahrenheit (int8)
+    global _1WIRE
+    if not _1WIRE:
+        _1WIRE = OneWireBus(ONEWIRE_PIN)
+    # Loop over all devices on the 1-wire bus
+    F = NO_DATA
+    for d in _1WIRE.scan():
+        if d.family_code != 0x28:
+            # Skip devices that don't have the DS18B20 family code
+            continue
+        # Return temperature of first DS18B20, converting ¡C to ¡F
+        ds18b20 = DS18X20(_1WIRE, d)
+        F = round((ds18b20.temperature * 1.8) + 32)
+    return F

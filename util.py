@@ -13,29 +13,32 @@ from time import mktime, sleep, struct_time
 from adafruit_datetime import datetime
 from adafruit_max1704x import MAX17048
 
-from battery import battery_status
+from datalogger import battery_centivolts
 from redled import RedLED
 from sleepmem import SleepMem
 
 
 def batt():
     # Check battery status on supported boards
-    (src, volts, percent) = battery_status()
-    print('%s: %.2fV, %.1f%%' % (src or '--', volts or 0, percent or 0))
+    cV = battery_centivolts()
+    if not (cV is None):
+        print('%d cV' % cV)
+    else:
+        print('Voltage measurement not available')
 
 def dump():
     # Print the data log in CSV format to serial console
     sm = SleepMem()
     percent = 100 * (sm.end - sm.DATA) / (len(sleep_memory) - sm.DATA)
     print("# NVRAM end index: %d (%.0f%% of buffer)" % (sm.end, percent))
-    print("Date Time,°F,Batt%")
+    print("Date Time,°F,centi-Volts")
     for i in range(sm.DATA, sm.end, 4):
         data_u32 = unpack("<I", sleep_memory[i:i+4])[0]   # unsigned u32
         timestamp = (data_u32 >> (16 - sm.TIME_SHIFT)) + sm.epoch
         (mon,d,h,min_,s) = datetime.fromtimestamp(timestamp).timetuple()[1:6]
         tempF = unpack("<b", sleep_memory[i+1:i+2])[0]    # signed i8
-        batt =  unpack("<b", sleep_memory[i:i+1])[0]      # signed i8
-        print('%d/%d %02d:%02d,%d,%d' % (mon, d, h, min_, tempF, batt))
+        cV = sm.unscale_centivolts(sleep_memory[i])         # u8 (scaled cV)
+        print('%d/%d %02d:%02d,%d,%d' % (mon, d, h, min_, tempF, cV))
 
 def set_clock():
     # Clear memory, set real time clock (RTC) time, set epoch
@@ -76,20 +79,3 @@ def now():
     return "%04d-%02d-%02d %02d:%02d:%02d (epoch + %d)" % (
         (rtc.datetime)[0:6] + (timestamp - sm.epoch,)
     )
-
-# Assigning the led object to a global avoids pin in use errors if you want to
-# call util.discharge() more than once (testing, change your mind, etc)
-_LED = None
-
-def discharge(val):
-    # Prepare battery discharge feature to activate when USB is unplugged
-    sm = SleepMem()
-    sm.discharge = val
-    global _LED
-    if not _LED:
-        _LED = RedLED()
-    _LED.value = val
-    if val:
-        print("BATTERY DISCHARGE = ARMED (begins when USB unplugged)")
-    else:
-        print("BATTERY DISCHARGE = DISARMED")

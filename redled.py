@@ -99,7 +99,7 @@ class RedLED:
         # - 5 WPM: 1.2/5 = 0.24 s/dot
         # - 8 WPM: 1.2/8 = 0.15 s/dot
         #
-        dot = 0.24  # 5 WPM
+        dot = 0.17  # 7 WPM
         slp_ = sleep
         if c == ' ':
             # Gap should be 7 dots worth, but assume this comes after a
