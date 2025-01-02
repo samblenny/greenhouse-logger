@@ -32,6 +32,7 @@ def has_A3_divider():
     # Does this board have a battery voltage divider on A3? (return True/False)
     return board_id in (
         'adafruit_qtpy_esp32s3_4mbflash_2mbpsram',
+        'adafruit_qtpy_esp32s3_nopsram',
     )
 
 def battery_centivolts():

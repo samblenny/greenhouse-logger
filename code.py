@@ -85,7 +85,7 @@ def main():
     # Record a measurement
     sm = SleepMem()
     tempF = temp_f()
-    cV = battery_centivolts()
+    cV = battery_centivolts() or 0
     print("DS18B20: %d °F, batt: %d cV" % (tempF, cV))
     sm.append_data(time.time(), tempF, cV)
 
