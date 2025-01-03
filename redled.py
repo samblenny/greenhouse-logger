@@ -77,7 +77,7 @@ class RedLED:
                 # Set neopixel on red
                 grb_red = bytearray([0, 5, 0])  # red (GRB order)
                 self.neopow.value = True
-                sleep(0.005)  # wait 5ms for neopixel power to stabilize
+                sleep(0.001)  # wait 5ms for neopixel power to stabilize
                 neopixel_write(self.neo, grb_red)
             else:
                 # Set neopixel off
@@ -104,14 +104,14 @@ class RedLED:
         if c == ' ':
             # Gap should be 7 dots worth, but assume this comes after a
             # character that ended with a 3 dot gap. So, 3+4=7.
-            self.led.value = False
+            self.value = False
             slp_(4 * dot)
         elif c in MORSE:
             # Loop over the dot and dash symbols of a character
             for on_dots in MORSE[c]:
-                self.led.value = True   # on for 1 or 3 dot lengths
+                self.value = True   # on for 1 or 3 dot lengths
                 slp_(on_dots * dot)
-                self.led.value = False  # off for 1 dot length
+                self.value = False  # off for 1 dot length
                 slp_(dot)
             # Finish the gap between characters (loop ended with 1, so 1+2=3)
             slp_(2 * dot)

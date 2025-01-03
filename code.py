@@ -24,6 +24,9 @@ STORAGE_CV = const(380)
 # Low voltage threshold (centi-Volts) for power conservation features
 LOW_CV = const(355)
 
+# Value to mark unavailable voltage measurement
+NONE_CV = const(270)
+
 
 def admin_mode(a0_gnd):
     # Admin mode pauses logging and adjusts sleep mode usage. The point is to
@@ -39,9 +42,9 @@ def admin_mode(a0_gnd):
     # jumper is grounded and the battery is not too low.
     led = RedLED()
     while not a0_gnd.value:
-        cV = battery_centivolts()
+        cV = battery_centivolts() or NONE_CV
         # Unless battery is low, send centi-Volts in Morse code on LED
-        if cV and (cV > LOW_CV):
+        if cV and ((cV > LOW_CV) or (cV == NONE_CV)):
             gc.collect()
             msg = '  ^ %d %d + ' % (cV, cV)
             print(msg)
